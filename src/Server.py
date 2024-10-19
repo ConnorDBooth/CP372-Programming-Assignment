@@ -56,7 +56,7 @@ def handle_client(conn, addr, client_name):
                 connected = False
             else: # Append "ACK" to client message and echo back to client
                 response = f"Echo from server: {msg} ACK"
-                conn.sendall(response.encode('utf-8'))
+                conn.sendall(response.encode(FORMAT))
         else:
             connected = False
             
@@ -67,7 +67,7 @@ def handle_client(conn, addr, client_name):
 
 def start():
     server.listen()
-    print(f"Sever is listening on {SERVER}:{PORT}")
+    print(f"Server is listening on {SERVER}:{PORT}")
     while True:
         conn, addr = server.accept() # when a new connection occurs, store object that allows for communication back to the connection and address
         print(f"Attempting to connect: {addr}")

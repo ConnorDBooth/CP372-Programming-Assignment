@@ -1,16 +1,40 @@
 import socket
 
-def start_client():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('localhost', 12345))  # Connect to the server
+#To do:
+# Receiving of file contents from server.
+#
 
-    message = input("Enter message to send: ")
-    client_socket.send(message.encode())
+#Constants
+HEADER = 64
+PORT = 5050
+FORMAT = 'utf-8'
+SERVER = socket.gethostbyname(socket.gethostname())  # Assuming the server is running on the same machine. Replace with actual IP if needed.
+ADDR = (SERVER, PORT)
 
-    data = client_socket.recv(1024).decode()
-    print(f"Received from server: {data}")
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(ADDR)
 
-    client_socket.close()
 
-if __name__ == '__main__':
-    start_client()
+def send_message(msg):
+    message = msg.encode(FORMAT)
+    client.send(message)
+    # Receive and print the response from the server
+    response = client.recv(1024).decode(FORMAT)
+    print(f"Server: {response}")
+
+
+print("successful server connection.")
+
+# Main loop to send messages
+while True:
+    message = input("Enter message: ")
+
+    # Check if the user wants to exit
+    if message.lower() == "exit":
+        send_message("exit")
+        break
+    else:
+        send_message(message)
+
+# Close the client connection
+client.close()
