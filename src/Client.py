@@ -24,6 +24,12 @@ def send_message(msg):
     # Receive and print the response from the server
     response = client.recv(1024).decode(FORMAT)
     print(f"Server: {response}")
+    if "Sending file" in response:
+        file_size = int(client.recv(HEADER).decode(FORMAT).strip())
+        transmitteddata = b' '
+        while file_size > len(transmitteddata):
+            transmitteddata += client.recv(1024)
+        print(transmitteddata.decode(FORMAT))
     #If the server is full, close the client
     if "maximum number of connections" in response:
         print("Closing the connection")
@@ -41,30 +47,6 @@ while True:
     if message.lower() == "exit":
         send_message("exit")
         break
-    elif message.lower() == "list":
-        send_message("list")
-        #receive file list
-        file_list = client.recv(1024).decode(FORMAT)
-        if file_list == "No files available":
-            print("No files available")
-        else:
-            print(file_list)
-    elif message.lower().startswith("get"):
-        #get file from server
-        send_message(message)
-        response = client.recv(1024).decode(FORMAT)
-        
-        if "Sending file" in response:
-            filename = message[4:]
-            with open(filename, "wb") as f:
-                while True:
-                    file_data = client.recv(1024)
-                    if not file_data:
-                        break
-                f.write(file_data)
-            print(f"File '{filename}' received successfully")
-        else:
-            print(response)
     else:
         send_message(message)
 

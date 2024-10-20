@@ -17,7 +17,7 @@ PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname()) # get ip address for device hosting server
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
-FILE_DIR = "/Users/connorbooth/Documents/GitHub/CP372-Programming-Assignment" #directory to serve files from
+FILE_DIR = os.path.dirname(os.path.abspath(__file__)) #directory to serve files from
 
 #Ensure directory exists
 if not os.path.exists(FILE_DIR):
@@ -79,6 +79,7 @@ def handle_client(conn, addr, client_name):
                 if os.path.isfile(file_path):
                     #If file can be found, send to client
                     conn.sendall(f"Sending file: {filename}".encode(FORMAT))
+                    conn.sendall(str(os.path.getsize(file_path)).encode(FORMAT) + b' ' * (HEADER - len(str(os.path.getsize(file_path))))) #Send expected bytes to client to have them receive whole transmission in one request.
                     with open(file_path, "rb") as f:
                         while True:
                                 file_data = f.read(1024)
