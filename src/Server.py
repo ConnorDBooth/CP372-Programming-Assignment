@@ -65,7 +65,8 @@ def handle_client(conn, addr, client_name):
                 response = "Available files:"
                 additionalresponse = "\n".join(files) if files else "No files available"
                 conn.sendall(response.encode(FORMAT))
-                conn.sendall(str(len(additionalresponse)).encode(FORMAT)+ b'' * (HEADER - len(str(len(additionalresponse))))) #send byte length and pad rest of packet to avoid errors
+                # send byte length and pad rest of packet to avoid errors
+                conn.sendall(str(len(additionalresponse)).encode(FORMAT)+ b' ' * (HEADER - len(str(len(additionalresponse)))))
                 conn.sendall(additionalresponse.encode(FORMAT))
                 
             elif msg.lower().startswith("get "):
