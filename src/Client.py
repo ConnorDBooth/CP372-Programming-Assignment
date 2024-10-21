@@ -33,7 +33,7 @@ def send_message(msg):
         exit()
 
 
-print("successful server connection.")
+print("Successful server connection!")
 
 # Main loop to send messages
 while True:
