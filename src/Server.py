@@ -1,14 +1,7 @@
 import socket
 import threading
 from datetime import datetime
-import os 
-
-
-# TODO
-#
-# - BONUS: If client message == "list", list all files in repository
-#   client can then request files by name 
-
+import os
 
 # Constants
 HEADER = 64
@@ -69,8 +62,12 @@ def handle_client(conn, addr, client_name):
                 
             elif msg.lower() == "list":
                 files = os.listdir(FILE_DIR)
-                response = "Available files:\n" + "\n".join(files) if files else "No files available"
+                response = "Available files:"
+                additionalresponse = "\n".join(files) if files else "No files available"
+
                 conn.sendall(response.encode(FORMAT))
+                conn.sendall(str(len(additionalresponse)).encode(FORMAT)+ b'' * (HEADER - len(str(len(additionalresponse))))) #send byte length and pad rest of packet to avoid errors
+                conn.sendall(additionalresponse.encode(FORMAT))
                 
             elif msg.lower().startswith("get "):
                 filename = msg[4:] #skip "get"
@@ -79,7 +76,7 @@ def handle_client(conn, addr, client_name):
                 if os.path.isfile(file_path):
                     #If file can be found, send to client
                     conn.sendall(f"Sending file: {filename}".encode(FORMAT))
-                    conn.sendall(str(os.path.getsize(file_path)).encode(FORMAT) + b' ' * (HEADER - len(str(os.path.getsize(file_path))))) #Send expected bytes to client to have them receive whole transmission in one request.
+                    conn.sendall(str(os.path.getsize(file_path)).encode(FORMAT) + b'' * (HEADER - len(str(os.path.getsize(file_path))))) #Send expected bytes to client to have them receive whole transmission in one request.
                     with open(file_path, "rb") as f:
                         while True:
                                 file_data = f.read(1024)

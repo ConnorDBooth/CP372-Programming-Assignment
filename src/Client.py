@@ -1,9 +1,5 @@
 import socket
 
-#To do:
-# Receiving of file contents from server.
-#
-
 #Constants
 HEADER = 64
 PORT = 5050
@@ -26,8 +22,14 @@ def send_message(msg):
     print(f"Server: {response}")
     if "Sending file" in response:
         file_size = int(client.recv(HEADER).decode(FORMAT).strip())
-        transmitteddata = b' '
+        transmitteddata = b''
         while file_size > len(transmitteddata):
+            transmitteddata += client.recv(1024)
+        print(transmitteddata.decode(FORMAT))
+    elif "Available files" in response:
+        list_size = int(client.recv(HEADER).decode(FORMAT).strip())
+        transmitteddata = b''
+        while list_size > len(transmitteddata):
             transmitteddata += client.recv(1024)
         print(transmitteddata.decode(FORMAT))
     #If the server is full, close the client
@@ -42,7 +44,6 @@ print("successful server connection.")
 # Main loop to send messages
 while True:
     message = input("Enter message: ")
-
     # Check if the user wants to exit
     if message.lower() == "exit":
         send_message("exit")
