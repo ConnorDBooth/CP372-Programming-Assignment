@@ -20,16 +20,10 @@ def send_message(msg):
     # Receive and print the response from the server
     response = client.recv(1024).decode(FORMAT)
     print(f"Server: {response}")
-    if "Sending file" in response:
+    if "Sending file" in response or "Available files" in response:
         file_size = int(client.recv(HEADER).decode(FORMAT).strip())
         transmitteddata = b''
         while file_size > len(transmitteddata):
-            transmitteddata += client.recv(1024)
-        print(transmitteddata.decode(FORMAT))
-    elif "Available files" in response:
-        list_size = int(client.recv(HEADER).decode(FORMAT).strip())
-        transmitteddata = b''
-        while list_size > len(transmitteddata):
             transmitteddata += client.recv(1024)
         print(transmitteddata.decode(FORMAT))
     #If the server is full, close the client
