@@ -1,3 +1,27 @@
+#
+
+# -------------------------------------
+
+# Server File
+
+#
+
+# -------------------------------------
+
+# Software Authors
+
+# Filip Droca, 169032146, droc2146@mylaurier.ca
+
+# Connor Booth, 169038238, boot8238@mylaurier.ca
+
+#
+
+# @version 2024-10-21
+
+#
+
+# ------------------------------------- */
+
 import socket
 import threading
 from datetime import datetime
