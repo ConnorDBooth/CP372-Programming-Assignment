@@ -4,17 +4,17 @@ from datetime import datetime
 import os
 
 # Constants
-HEADER = 64
+HEADER = 64 # size of the packet to be sent
 MAX_CONNECTIONS = 3
-PORT = 5050
+PORT = 5050 # the port the server will send and receive information through
 SERVER = socket.gethostbyname(socket.gethostname()) # get ip address for device hosting server
 ADDR = (SERVER, PORT)
-FORMAT = 'utf-8'
-FILE_DIR = os.path.dirname(os.path.abspath(__file__)) #directory to serve files from
+FORMAT = 'utf-8' # the encoding format used to send and receive data between the client and server
+FILE_DIR = os.path.dirname(os.path.abspath(__file__)) #directory to serve files from, default is where server file is located
 
 #Ensure directory exists
 if not os.path.exists(FILE_DIR):
-    os.makedirs(FILE_DIR)
+    os.makedirs(FILE_DIR) #if it doesn't exist, create an empty one
 # Number of connections counter
 connections = 0
 connections_lock = threading.Lock()
@@ -31,26 +31,26 @@ server.bind(ADDR) # bind socket to address
 def handle_client(conn, addr, client_name):
     global connections
     
-    connection_time = datetime.now()
+    connection_time = datetime.now() #get time of connection
     
     print(f"New Connection: {addr} connected")
     
     with connections_lock:
         connections += 1
     
-    with cache_lock:
+    with cache_lock: # add address, time of connection and time of disconnect to cache.
         cache[client_name] = {
             'address': addr,
             'connection_time': connection_time,
             'disconnection_time': None
         }
     connected = True
-    while connected:
+    while connected: #while user is connected.
         # Finds size of client message
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
+            msg = conn.recv(msg_length).decode(FORMAT) #receive the message from the expected length of the message
             # print client message
             print(f"Message from {client_name} : {msg}")
             
@@ -60,23 +60,25 @@ def handle_client(conn, addr, client_name):
                 response = "Cache contents:\n" + "\n".join(f"{k}: {v['address']} connected at {v['connection_time']}: Disconnected at {v['disconnection_time'] or 'Still Connected'}" for k, v in cache.items())
                 conn.sendall(response.encode(FORMAT))
                 
-            elif msg.lower() == "list":
-                files = os.listdir(FILE_DIR)
+            elif msg.lower() == "list": # if message == "list", list server repository
+                files = os.listdir(FILE_DIR) #store directory listing
                 response = "Available files:"
-                additionalresponse = "\n".join(files) if files else "No files available"
-                conn.sendall(response.encode(FORMAT))
+                additionalresponse = "\n".join(files) if files else "No files available" #store all files as newline delimited string
+                conn.sendall(response.encode(FORMAT)) # send response first to have client prepare for directory data
                 # send byte length and pad rest of packet to avoid errors
-                conn.sendall(str(len(additionalresponse)).encode(FORMAT)+ b' ' * (HEADER - len(str(len(additionalresponse)))))
-                conn.sendall(additionalresponse.encode(FORMAT))
+                conn.sendall(str(len(additionalresponse)).encode(FORMAT)+ b' ' * (HEADER - len(str(len(additionalresponse))))) # send length of data to be sent to client
+                conn.sendall(additionalresponse.encode(FORMAT)) # send encoded data to client
                 
-            elif msg.lower().startswith("get "):
+            elif msg.lower().startswith("get "): #if the client calls "get", fetch the appropriate file if it exists
                 filename = msg[4:] #skip "get"
-                file_path = os.path.join(FILE_DIR, filename)
+                file_path = os.path.join(FILE_DIR, filename) #get appropriate file path if possible
                 
                 if os.path.isfile(file_path):
                     #If file can be found, send to client
                     conn.sendall(f"Sending file: {filename}".encode(FORMAT))
-                    conn.sendall(str(os.path.getsize(file_path)).encode(FORMAT) + b'' * (HEADER - len(str(os.path.getsize(file_path))))) #Send expected number of bytes to client to have them receive whole transmission in one request.
+                    # send expected number of bytes to client to have them receive whole transmission in one request.
+                    conn.sendall(str(os.path.getsize(file_path)).encode(FORMAT) + b'' * (HEADER - len(str(os.path.getsize(file_path)))))
+                    #open file in byte-read mode, and continue until no more file data can be read
                     with open(file_path, "rb") as f:
                         while True:
                                 file_data = f.read(1024)
@@ -100,13 +102,13 @@ def handle_client(conn, addr, client_name):
     with cache_lock:
         cache[client_name]['disconnection_time'] = disconnection_time
     
-    response = ("Echo from server: exit ACK")
+    response = ("Echo from server: exit ACK") #since loop is escaped, simulate its normal output
     conn.sendall(response.encode(FORMAT))
     
     conn.close()
     print(f"Connection with {client_name} has been closed")
     with connections_lock:
-        connections -= 1
+        connections -= 1 #decrement connections to take new clients
 
 def start():
     global client_id 
